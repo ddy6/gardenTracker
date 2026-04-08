@@ -1,4 +1,5 @@
 from pathlib import Path
+from urllib.parse import urlencode
 
 from fastapi import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -21,6 +22,12 @@ def render_template(name: str, **context) -> HTMLResponse:
 
 def redirect(url: str) -> RedirectResponse:
     return RedirectResponse(url=url, status_code=303)
+
+
+def with_query(path: str, **params) -> str:
+    filtered = {key: value for key, value in params.items() if value not in (None, "")}
+    query = urlencode(filtered)
+    return f"{path}?{query}" if query else path
 
 
 def get_env(request: Request):

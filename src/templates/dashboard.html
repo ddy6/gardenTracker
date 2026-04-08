@@ -9,7 +9,7 @@
         <p class="lede">Plants are now sorted by what needs attention first, with one-click watering updates from the dashboard.</p>
       </div>
       <div class="hero-actions">
-        <a href="/plants/new" class="button-link">Add plant</a>
+        <a href="{{ new_plant_url }}" class="button-link">Add plant</a>
         <form method="post" action="/logout">
           <button type="submit" class="secondary">Log out</button>
         </form>
@@ -44,6 +44,19 @@
       <p class="subtle-note">{{ no_schedule_count }} plant{% if no_schedule_count != 1 %}s{% endif %} still need{% if no_schedule_count == 1 %}s{% endif %} a watering interval to join the schedule.</p>
     {% endif %}
 
+    <nav class="filter-row" aria-label="Status filters">
+      {% for filter_option in status_filters %}
+        <a href="{{ filter_option.url }}" class="filter-chip{% if filter_option.is_active %} filter-chip-active{% endif %}">
+          <span>{{ filter_option.label }}</span>
+          <span class="filter-count">{{ filter_option.count }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+
+    {% if active_status_filter != "all" %}
+      <p class="subtle-note">Showing {{ visible_plants_count }} {{ active_status_label.lower() }} plant{% if visible_plants_count != 1 %}s{% endif %} out of {{ total_plants }} total.</p>
+    {% endif %}
+
     {% if dashboard_plants %}
       <section class="plant-list" aria-label="Plants">
         {% for item in dashboard_plants %}
@@ -66,23 +79,31 @@
               <span>Record #{{ item.plant.id }}</span>
             </div>
             <div class="plant-actions">
-              <form method="post" action="/plants/{{ item.plant.id }}/water">
+              <form method="post" action="/plants/{{ item.plant.id }}/water{% if active_status_filter != 'all' %}?status={{ active_status_filter }}{% endif %}">
                 <button type="submit">Mark watered</button>
               </form>
-              <a href="/plants/{{ item.plant.id }}/edit" class="button-link button-link-secondary">Edit</a>
-              <form method="post" action="/plants/{{ item.plant.id }}/delete" onsubmit="return confirm('Delete {{ item.plant.name }}?');">
+              <a href="/plants/{{ item.plant.id }}/edit{% if active_status_filter != 'all' %}?status={{ active_status_filter }}{% endif %}" class="button-link button-link-secondary">Edit</a>
+              <form method="post" action="/plants/{{ item.plant.id }}/delete{% if active_status_filter != 'all' %}?status={{ active_status_filter }}{% endif %}" onsubmit="return confirm('Delete {{ item.plant.name }}?');">
                 <button type="submit" class="danger">Delete</button>
               </form>
             </div>
           </article>
         {% endfor %}
       </section>
+    {% elif total_plants %}
+      <section class="empty-state">
+        <h2>No plants match this filter</h2>
+        <p>Try another status filter to see the rest of the garden.</p>
+        <div class="empty-actions">
+          <a href="/" class="button-link">Show all plants</a>
+        </div>
+      </section>
     {% else %}
       <section class="empty-state">
         <h2>No plants yet</h2>
         <p>The watering dashboard is ready. Add the first plant to start tracking what needs attention.</p>
         <div class="empty-actions">
-          <a href="/plants/new" class="button-link">Add the first plant</a>
+          <a href="{{ new_plant_url }}" class="button-link">Add the first plant</a>
         </div>
       </section>
     {% endif %}

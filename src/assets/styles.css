@@ -228,6 +228,40 @@ button.danger {
   color: var(--muted);
 }
 
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: -0.5rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+  padding: 0.7rem 1rem;
+}
+
+.filter-chip-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.filter-count {
+  border-radius: 999px;
+  background: rgba(36, 49, 39, 0.08);
+  color: inherit;
+  font-size: 0.85rem;
+  padding: 0.15rem 0.5rem;
+}
+
 .status-meta,
 .note p {
   margin: 0;

@@ -10,6 +10,13 @@ STATUS_SORT_ORDER = {
     "good": 2,
     "no-schedule": 3,
 }
+STATUS_FILTER_LABELS = {
+    "all": "All",
+    "overdue": "Overdue",
+    "due-soon": "Due Soon",
+    "good": "Good",
+    "no-schedule": "No Schedule",
+}
 
 
 @dataclass(slots=True)
@@ -114,13 +121,28 @@ def build_dashboard_plants(plants: list, today: date) -> list[DashboardPlant]:
     )
 
 
+def normalize_status_filter(value: str | None) -> str:
+    if value in STATUS_FILTER_LABELS:
+        return value
+    return "all"
+
+
+def filter_dashboard_plants(dashboard_plants: list[DashboardPlant], status_filter: str) -> list[DashboardPlant]:
+    normalized_filter = normalize_status_filter(status_filter)
+    if normalized_filter == "all":
+        return dashboard_plants
+    return [item for item in dashboard_plants if item.status_key == normalized_filter]
+
+
 def build_dashboard_summary(dashboard_plants: list[DashboardPlant]) -> dict[str, int]:
     overdue_count = sum(1 for item in dashboard_plants if item.status_key == "overdue")
     due_soon_count = sum(1 for item in dashboard_plants if item.status_key == "due-soon")
+    good_count = sum(1 for item in dashboard_plants if item.status_key == "good")
     no_schedule_count = sum(1 for item in dashboard_plants if item.status_key == "no-schedule")
     return {
         "total_plants": len(dashboard_plants),
         "overdue_count": overdue_count,
         "due_soon_count": due_soon_count,
+        "good_count": good_count,
         "no_schedule_count": no_schedule_count,
     }

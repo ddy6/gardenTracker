@@ -1,6 +1,6 @@
 # Garden Dashboard Cloudflare App
 
-This repo now contains a completed Phase 0 platform spike and an active Phase 1 implementation with real plant CRUD and a watering-aware dashboard.
+This repo now contains a completed Phase 0 platform spike and an active Phase 1 implementation with real plant CRUD and a watering-aware, filterable dashboard.
 
 ## Status
 
@@ -17,7 +17,7 @@ Verified successfully:
 
 Active workstream:
 
-- Phase 1 dashboard polish, preview validation, and deployment hardening
+- Phase 1 preview validation and deployment hardening
 
 ## Phase 0 Goals
 
@@ -51,7 +51,6 @@ The platform spike was used to prove four things before full implementation:
 
 - validate preview migrations and preview deploy in Cloudflare
 - add any final dashboard polish after preview feedback
-- decide whether v1 needs schedule filters or stays intentionally simple
 - harden deployment notes for preview and production cutover
 
 ## Local Setup
@@ -146,7 +145,7 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
 - `GET /login`: shared-password login page
 - `POST /login`: checks shared password and sets signed cookie
 - `POST /logout`: clears auth cookie
-- `GET /`: protected watering dashboard with sorted plant statuses
+- `GET /`: protected watering dashboard with sorted plant statuses and status filters
 - `GET /plants/new`: add plant form
 - `POST /plants/new`: create plant
 - `GET /plants/{id}/edit`: edit plant form

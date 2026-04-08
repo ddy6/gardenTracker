@@ -8,7 +8,7 @@
         <h1>{{ form_title }}</h1>
         <p class="lede">Capture the core details and watering schedule so the dashboard can flag what needs attention.</p>
       </div>
-      <a href="/" class="button-link button-link-secondary">Back to dashboard</a>
+      <a href="{{ back_url }}" class="button-link button-link-secondary">Back to dashboard</a>
     </div>
 
     <form method="post" action="{{ form_action }}" class="stack">
@@ -50,7 +50,7 @@
 
       <div class="form-actions">
         <button type="submit">{{ submit_label }}</button>
-        <a href="/" class="button-link button-link-secondary">Cancel</a>
+        <a href="{{ back_url }}" class="button-link button-link-secondary">Cancel</a>
       </div>
     </form>
   </section>
