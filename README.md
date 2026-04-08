@@ -4,7 +4,7 @@ This repo now contains a completed Phase 0 platform spike and an active Phase 1 
 
 ## Status
 
-Phase 0 was completed on April 8, 2026.
+Phase 0 and the core Phase 1 application slices were completed on April 8, 2026.
 
 Verified successfully:
 
@@ -13,11 +13,23 @@ Verified successfully:
 - static asset serving
 - D1 local migration and query execution
 - signed auth cookie issuance and protected route access
+- plant create/edit/delete flows
+- watering status calculation, urgency sorting, and summary counters
+- dashboard status filters with filter-preserving add/edit/delete/water flows
 - protected D1 route returning success
 
 Active workstream:
 
-- Phase 1 preview validation and deployment hardening
+- preview validation, security hardening, and deployment readiness
+
+## Remaining Work
+
+- apply migrations to the preview D1 database and verify preview deploy behavior
+- deploy the preview Worker and run the same smoke checks against Cloudflare, not just local `pywrangler`
+- add CSRF protection for POST routes before production cutover
+- decide whether production should start with starter plants or an empty dashboard
+- add remaining presentation extras that still matter for handoff, mainly favicon/final branding polish
+- complete production cutover on the chosen Cloudflare subdomain and verify HTTPS/mobile behavior
 
 ## Phase 0 Goals
 
@@ -50,7 +62,9 @@ The platform spike was used to prove four things before full implementation:
 ## Phase 1 Next Tasks
 
 - validate preview migrations and preview deploy in Cloudflare
+- add CSRF protection on POST routes
 - add any final dashboard polish after preview feedback
+- decide whether to ship with starter seed data or an empty first-run state
 - harden deployment notes for preview and production cutover
 
 ## Local Setup
@@ -97,7 +111,13 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler dev --ip 127.0.0.1 --port 8787
 
 ## Useful Commands
 
-Run the stdlib auth helper test:
+Run the full current test suite:
+
+```bash
+python3 -m unittest tests/test_auth_helpers.py tests/test_models.py tests/test_plant_form.py tests/test_plant_status.py
+```
+
+Run only the stdlib auth helper test:
 
 ```bash
 python3 -m unittest tests/test_auth_helpers.py
@@ -146,6 +166,7 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
 - `POST /login`: checks shared password and sets signed cookie
 - `POST /logout`: clears auth cookie
 - `GET /`: protected watering dashboard with sorted plant statuses and status filters
+  Query params: `status=all|overdue|due-soon|good|no-schedule`, optional `notice=<flash-key>`
 - `GET /plants/new`: add plant form
 - `POST /plants/new`: create plant
 - `GET /plants/{id}/edit`: edit plant form
