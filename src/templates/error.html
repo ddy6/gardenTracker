@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="panel auth-panel">
+    <p class="eyebrow">Garden Dashboard</p>
+    <h1>{{ error_title }}</h1>
+    <p class="lede">{{ error_message }}</p>
+    <div class="form-actions">
+      <a href="{{ back_url }}" class="button-link">{{ back_label }}</a>
+    </div>
+  </section>
+{% endblock %}

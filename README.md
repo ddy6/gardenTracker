@@ -13,6 +13,7 @@ Verified successfully:
 - static asset serving
 - D1 local migration and query execution
 - signed auth cookie issuance and protected route access
+- CSRF protection on login, logout, and plant POST routes
 - plant create/edit/delete flows
 - watering status calculation, urgency sorting, and summary counters
 - dashboard status filters with filter-preserving add/edit/delete/water flows
@@ -20,13 +21,12 @@ Verified successfully:
 
 Active workstream:
 
-- preview validation, security hardening, and deployment readiness
+- preview validation and deployment readiness
 
 ## Remaining Work
 
 - apply migrations to the preview D1 database and verify preview deploy behavior
 - deploy the preview Worker and run the same smoke checks against Cloudflare, not just local `pywrangler`
-- add CSRF protection for POST routes before production cutover
 - decide whether production should start with starter plants or an empty dashboard
 - add remaining presentation extras that still matter for handoff, mainly favicon/final branding polish
 - complete production cutover on the chosen Cloudflare subdomain and verify HTTPS/mobile behavior
@@ -44,7 +44,7 @@ The platform spike was used to prove four things before full implementation:
 
 - `src/entry.py`: Cloudflare Worker entrypoint
 - `src/app.py`: FastAPI app assembly and router registration
-- `src/auth.py`: signed auth cookie helpers
+- `src/auth.py`: signed auth cookie and CSRF helpers
 - `src/db.py`: reusable D1 query helpers
 - `src/models.py`: lightweight view models for dashboard data
 - `src/plants.py`: first plant query layer backed by D1
@@ -52,9 +52,10 @@ The platform spike was used to prove four things before full implementation:
 - `src/routes/`: route modules split by responsibility
 - `src/ui.py`: template rendering and shared request context
 - `src/templates/`: server-rendered HTML templates
+- `src/templates/error.html`: styled fallback page for invalid form submissions
 - `src/assets/`: static assets served by Workers
 - `migrations/0001_initial_schema.sql`: initial D1 schema
-- `tests/test_auth_helpers.py`: stdlib-only smoke tests for cookie signing
+- `tests/test_auth_helpers.py`: stdlib-only smoke tests for auth and CSRF helpers
 - `tests/test_plant_form.py`: plant form parsing and validation tests
 - `tests/test_models.py`: model normalization and display helper tests
 - `tests/test_plant_status.py`: watering status and dashboard sorting tests
@@ -62,7 +63,6 @@ The platform spike was used to prove four things before full implementation:
 ## Phase 1 Next Tasks
 
 - validate preview migrations and preview deploy in Cloudflare
-- add CSRF protection on POST routes
 - add any final dashboard polish after preview feedback
 - decide whether to ship with starter seed data or an empty first-run state
 - harden deployment notes for preview and production cutover

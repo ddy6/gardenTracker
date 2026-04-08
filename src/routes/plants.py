@@ -1,10 +1,13 @@
+from urllib.parse import parse_qs
+
 from fastapi import APIRouter, HTTPException, Request
 
-from auth import request_is_authenticated
+from auth import request_has_valid_csrf_token, request_is_authenticated
+from config import CSRF_FORM_FIELD_NAME
 from plant_form import PlantFormValues, parse_plant_form_body, validate_plant_form
 from plant_status import get_today, normalize_status_filter
 from plants import create_plant, delete_plant, get_plant, mark_plant_watered, update_plant
-from ui import build_template_context, get_env, redirect, render_template, with_query
+from ui import get_env, redirect, render_error_response, render_template_response, with_query
 
 router = APIRouter()
 
@@ -24,6 +27,23 @@ def dashboard_redirect(notice: str | None = None, *, status_filter: str | None =
     return redirect(with_query("/", notice=notice, status=status_filter))
 
 
+def read_submitted_csrf_token(body: bytes) -> str:
+    form_data = parse_qs(body.decode("utf-8"), keep_blank_values=True)
+    return form_data.get(CSRF_FORM_FIELD_NAME, [""])[0]
+
+
+def csrf_failure_response(request: Request, *, back_url: str, back_label: str):
+    return render_error_response(
+        request,
+        error_title="Refresh Required",
+        error_message="This form is no longer valid. Reload the page and try again.",
+        back_url=back_url,
+        back_label=back_label,
+        page_title="Invalid Form Submission",
+        status_code=403,
+    )
+
+
 def render_plant_form(
     request: Request,
     *,
@@ -36,8 +56,9 @@ def render_plant_form(
     back_url: str = "/",
     status_code: int = 200,
 ):
-    context = build_template_context(
+    return render_template_response(
         request,
+        "plant_form.html",
         page_title=page_title,
         form_title=form_title,
         submit_label=submit_label,
@@ -45,14 +66,8 @@ def render_plant_form(
         form_values=form_values,
         errors=errors or {},
         back_url=back_url,
+        status_code=status_code,
     )
-    return render_template("plant_form.html", **context) if status_code == 200 else render_template_with_status("plant_form.html", status_code, **context)
-
-
-def render_template_with_status(name: str, status_code: int, **context):
-    response = render_template(name, **context)
-    response.status_code = status_code
-    return response
 
 
 @router.get("/plants/new")
@@ -80,7 +95,15 @@ async def create_plant_action(request: Request):
         return unauthorized
 
     status_filter = get_redirect_status(request)
-    form_values = parse_plant_form_body(await request.body())
+    body = await request.body()
+    if not request_has_valid_csrf_token(request, read_submitted_csrf_token(body)):
+        return csrf_failure_response(
+            request,
+            back_url=with_query("/plants/new", status=status_filter),
+            back_label="Back to add plant",
+        )
+
+    form_values = parse_plant_form_body(body)
     payload, errors = validate_plant_form(form_values)
     if errors:
         return render_plant_form(
@@ -128,11 +151,19 @@ async def update_plant_action(request: Request, plant_id: int):
         return unauthorized
 
     status_filter = get_redirect_status(request)
+    body = await request.body()
+    if not request_has_valid_csrf_token(request, read_submitted_csrf_token(body)):
+        return csrf_failure_response(
+            request,
+            back_url=with_query(f"/plants/{plant_id}/edit", status=status_filter),
+            back_label="Back to edit plant",
+        )
+
     existing_plant = await get_plant(get_env(request), plant_id)
     if existing_plant is None:
         raise HTTPException(status_code=404, detail="Plant not found")
 
-    form_values = parse_plant_form_body(await request.body())
+    form_values = parse_plant_form_body(body)
     payload, errors = validate_plant_form(form_values)
     if errors:
         return render_plant_form(
@@ -158,6 +189,14 @@ async def delete_plant_action(request: Request, plant_id: int):
         return unauthorized
 
     status_filter = get_redirect_status(request)
+    body = await request.body()
+    if not request_has_valid_csrf_token(request, read_submitted_csrf_token(body)):
+        return csrf_failure_response(
+            request,
+            back_url=with_query("/", status=status_filter),
+            back_label="Back to dashboard",
+        )
+
     plant = await get_plant(get_env(request), plant_id)
     if plant is None:
         raise HTTPException(status_code=404, detail="Plant not found")
@@ -173,6 +212,14 @@ async def mark_plant_watered_action(request: Request, plant_id: int):
         return unauthorized
 
     status_filter = get_redirect_status(request)
+    body = await request.body()
+    if not request_has_valid_csrf_token(request, read_submitted_csrf_token(body)):
+        return csrf_failure_response(
+            request,
+            back_url=with_query("/", status=status_filter),
+            back_label="Back to dashboard",
+        )
+
     env = get_env(request)
     plant = await get_plant(env, plant_id)
     if plant is None:

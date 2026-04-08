@@ -11,6 +11,7 @@
       <div class="hero-actions">
         <a href="{{ new_plant_url }}" class="button-link">Add plant</a>
         <form method="post" action="/logout">
+          <input type="hidden" name="{{ csrf_field_name }}" value="{{ csrf_token }}">
           <button type="submit" class="secondary">Log out</button>
         </form>
       </div>
@@ -80,10 +81,12 @@
             </div>
             <div class="plant-actions">
               <form method="post" action="/plants/{{ item.plant.id }}/water{% if active_status_filter != 'all' %}?status={{ active_status_filter }}{% endif %}">
+                <input type="hidden" name="{{ csrf_field_name }}" value="{{ csrf_token }}">
                 <button type="submit">Mark watered</button>
               </form>
               <a href="/plants/{{ item.plant.id }}/edit{% if active_status_filter != 'all' %}?status={{ active_status_filter }}{% endif %}" class="button-link button-link-secondary">Edit</a>
               <form method="post" action="/plants/{{ item.plant.id }}/delete{% if active_status_filter != 'all' %}?status={{ active_status_filter }}{% endif %}" onsubmit="return confirm('Delete {{ item.plant.name }}?');">
+                <input type="hidden" name="{{ csrf_field_name }}" value="{{ csrf_token }}">
                 <button type="submit" class="danger">Delete</button>
               </form>
             </div>

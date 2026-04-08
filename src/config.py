@@ -1,6 +1,9 @@
 APP_NAME = "Garden Dashboard"
 AUTH_COOKIE_NAME = "garden_session"
 AUTH_COOKIE_TTL_SECONDS = 60 * 60 * 24 * 14
+CSRF_COOKIE_NAME = "garden_csrf"
+CSRF_FORM_FIELD_NAME = "csrf_token"
+CSRF_TOKEN_TTL_SECONDS = AUTH_COOKIE_TTL_SECONDS
 DEFAULT_TIMEZONE = "America/New_York"
 
 

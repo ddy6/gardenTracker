@@ -12,6 +12,7 @@
     </div>
 
     <form method="post" action="{{ form_action }}" class="stack">
+      <input type="hidden" name="{{ csrf_field_name }}" value="{{ csrf_token }}">
       <div class="form-grid">
         <label class="field">
           <span>Plant name</span>

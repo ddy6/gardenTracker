@@ -5,8 +5,8 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from auth import request_is_authenticated
-from config import APP_NAME, get_timezone_name, get_worker_name
+from auth import get_csrf_token_for_request, request_is_authenticated
+from config import APP_NAME, CSRF_COOKIE_NAME, CSRF_FORM_FIELD_NAME, CSRF_TOKEN_TTL_SECONDS, get_timezone_name, get_worker_name
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
 TEMPLATE_ENV = Environment(
@@ -18,6 +18,58 @@ TEMPLATE_ENV = Environment(
 def render_template(name: str, **context) -> HTMLResponse:
     template = TEMPLATE_ENV.get_template(name)
     return HTMLResponse(template.render(**context))
+
+
+def apply_csrf_cookie(request: Request, response, csrf_token: str):
+    if request_is_authenticated(request):
+        return response
+    response.set_cookie(
+        key=CSRF_COOKIE_NAME,
+        value=csrf_token,
+        max_age=CSRF_TOKEN_TTL_SECONDS,
+        httponly=True,
+        samesite="lax",
+        secure=request.url.scheme == "https",
+        path="/",
+    )
+    return response
+
+
+def render_template_response(request: Request, name: str, *, status_code: int = 200, **extra):
+    csrf_token = extra.pop("csrf_token", get_csrf_token_for_request(request))
+    response = render_template(
+        name,
+        **build_template_context(
+            request,
+            csrf_token=csrf_token,
+            csrf_field_name=CSRF_FORM_FIELD_NAME,
+            **extra,
+        ),
+    )
+    response.status_code = status_code
+    return apply_csrf_cookie(request, response, csrf_token)
+
+
+def render_error_response(
+    request: Request,
+    *,
+    error_title: str,
+    error_message: str,
+    back_url: str,
+    back_label: str,
+    page_title: str,
+    status_code: int,
+):
+    return render_template_response(
+        request,
+        "error.html",
+        status_code=status_code,
+        page_title=page_title,
+        error_title=error_title,
+        error_message=error_message,
+        back_url=back_url,
+        back_label=back_label,
+    )
 
 
 def redirect(url: str) -> RedirectResponse:

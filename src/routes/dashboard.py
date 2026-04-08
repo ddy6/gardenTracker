@@ -10,7 +10,7 @@ from plant_status import (
     normalize_status_filter,
 )
 from plants import list_plants
-from ui import build_template_context, get_env, redirect, render_template, with_query
+from ui import get_env, redirect, render_template_response, with_query
 
 router = APIRouter()
 
@@ -53,8 +53,9 @@ async def dashboard(request: Request):
         }
         for key in FILTER_ORDER
     ]
-    context = build_template_context(
+    return render_template_response(
         request,
+        "dashboard.html",
         dashboard_plants=visible_dashboard_plants,
         notice_message=NOTICE_MESSAGES.get(notice_key),
         today=today.isoformat(),
@@ -65,4 +66,3 @@ async def dashboard(request: Request):
         new_plant_url=with_query("/plants/new", status=None if active_status_filter == "all" else active_status_filter),
         **summary,
     )
-    return render_template("dashboard.html", **context)
