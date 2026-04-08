@@ -40,6 +40,11 @@ body {
   padding: 2rem;
 }
 
+.dashboard-panel {
+  display: grid;
+  gap: 2rem;
+}
+
 .auth-panel {
   width: min(30rem, 100%);
   margin: 8vh auto 0;
@@ -165,6 +170,72 @@ button.secondary {
   border-top: 1px solid var(--border);
 }
 
+.plant-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.plant-card {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: #fff;
+  padding: 1.25rem;
+}
+
+.plant-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.plant-heading h2,
+.empty-state h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.plant-location {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
+.plant-schedule {
+  white-space: nowrap;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.45rem 0.8rem;
+}
+
+.plant-notes {
+  margin: 1rem 0;
+  line-height: 1.6;
+}
+
+.plant-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.empty-state {
+  border: 1px dashed var(--border);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 1.5rem;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 @media (max-width: 640px) {
   .shell {
     width: min(100vw - 1rem, 960px);
@@ -176,6 +247,10 @@ button.secondary {
   }
 
   .hero {
+    flex-direction: column;
+  }
+
+  .plant-heading {
     flex-direction: column;
   }
 }

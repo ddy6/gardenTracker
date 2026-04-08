@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="panel dashboard-panel">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Garden Dashboard</p>
+        <h1>Plant Overview</h1>
+        <p class="lede">Phase 1 replaces the spike landing page with the real dashboard shell backed by the `plants` table.</p>
+      </div>
+      <form method="post" action="/logout">
+        <button type="submit" class="secondary">Log out</button>
+      </form>
+    </div>
+
+    <div class="status-grid">
+      <article class="status-card">
+        <p class="status-label">Total plants</p>
+        <p class="status-value">{{ total_plants }}</p>
+        <p class="status-meta">All entries currently stored in D1.</p>
+      </article>
+
+      <article class="status-card">
+        <p class="status-label">Scheduled</p>
+        <p class="status-value success">{{ scheduled_plants }}</p>
+        <p class="status-meta">Plants with a watering interval.</p>
+      </article>
+
+      <article class="status-card">
+        <p class="status-label">No schedule</p>
+        <p class="status-value">{{ unscheduled_plants }}</p>
+        <p class="status-meta">Plants still missing a watering cadence.</p>
+      </article>
+    </div>
+
+    {% if plants %}
+      <section class="plant-list" aria-label="Plants">
+        {% for plant in plants %}
+          <article class="plant-card">
+            <div class="plant-heading">
+              <div>
+                <h2>{{ plant.name }}</h2>
+                <p class="plant-location">{{ plant.location_display }}</p>
+              </div>
+              <span class="plant-schedule">{{ plant.schedule_display }}</span>
+            </div>
+            <p class="plant-notes">{{ plant.note_preview }}</p>
+            <div class="plant-meta">
+              <span>Last watered: {{ plant.last_watered_display }}</span>
+              <span>Record #{{ plant.id }}</span>
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="empty-state">
+        <h2>No plants yet</h2>
+        <p>The app skeleton is now reading from the real `plants` table. The next slice will add the first create/edit routes and forms.</p>
+      </section>
+    {% endif %}
+  </section>
+{% endblock %}

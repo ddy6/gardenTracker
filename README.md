@@ -31,22 +31,26 @@ The platform spike was used to prove four things before full implementation:
 ## Project Layout
 
 - `src/entry.py`: Cloudflare Worker entrypoint
-- `src/app.py`: FastAPI app and spike routes
+- `src/app.py`: FastAPI app assembly and router registration
 - `src/auth.py`: signed auth cookie helpers
-- `src/db.py`: D1 ping helper
+- `src/db.py`: reusable D1 query helpers
+- `src/models.py`: lightweight view models for dashboard data
+- `src/plants.py`: first plant query layer backed by D1
+- `src/routes/`: route modules split by responsibility
+- `src/ui.py`: template rendering and shared request context
 - `src/templates/`: server-rendered HTML templates
 - `src/assets/`: static assets served by Workers
 - `migrations/0001_initial_schema.sql`: initial D1 schema
 - `tests/test_auth_helpers.py`: stdlib-only smoke tests for cookie signing
+- `tests/test_models.py`: model normalization and display helper tests
 
 ## Phase 1 Next Tasks
 
-- refactor the spike routes into stable auth and plant route modules
-- replace the temporary protected home page with the real dashboard shell
-- turn the current D1 probe layer into reusable plant query helpers
-- add base layout partials needed for the production UI
+- add plant create/edit/delete routes and forms
+- add dashboard actions instead of the current empty-state placeholder
+- wire real plant creation into the `plants` query layer
 - validate preview migrations and preview deploy in Cloudflare
-- keep the current auth flow, but wire it into the real dashboard routes
+- keep the current auth flow, but remove remaining spike-only copy
 
 ## Local Setup
 
@@ -137,10 +141,8 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
 ## Current Routes
 
 - `GET /healthz`: simple JSON health check
-- `GET /login`: spike login page
+- `GET /login`: shared-password login page
 - `POST /login`: checks shared password and sets signed cookie
 - `POST /logout`: clears auth cookie
-- `GET /`: protected HTML page showing cookie + D1 status
+- `GET /`: protected dashboard shell backed by the `plants` table
 - `GET /debug/d1`: protected D1 probe endpoint
-
-These routes are temporary spike routes and should be replaced or refactored during Phase 1.
