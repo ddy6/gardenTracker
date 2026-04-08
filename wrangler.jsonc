@@ -1,11 +1,8 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "garden-dashboard",
-	"main": "src/entry.py",
+	"main": "worker/index.ts",
 	"compatibility_date": "2026-04-07",
-	"compatibility_flags": [
-		"python_workers"
-	],
 	"preview_urls": true,
 	"assets": {
 		"directory": "./src/assets"

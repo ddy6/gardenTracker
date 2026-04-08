@@ -1,23 +1,22 @@
 # Garden Dashboard Cloudflare App
 
-This repo now contains a completed Phase 0 platform spike and an active Phase 1 implementation with real plant CRUD and a watering-aware, filterable dashboard.
+This repo now contains a completed product implementation and an active Cloudflare runtime fallback. The app behavior is already built; the current task is getting the deployable Worker layer onto Cloudflare cleanly.
 
 ## Status
 
-Phase 0 and the core Phase 1 application slices were completed on April 8, 2026.
+As of April 8, 2026:
 
 Verified successfully:
 
-- local Python Worker boot via `pywrangler`
-- FastAPI HTML route rendering
-- static asset serving
-- D1 local migration and query execution
+- local Python Worker spike proved the product logic and D1 schema
 - signed auth cookie issuance and protected route access
 - CSRF protection on login, logout, and plant POST routes
 - plant create/edit/delete flows
 - watering status calculation, urgency sorting, and summary counters
 - dashboard status filters with filter-preserving add/edit/delete/water flows
-- protected D1 route returning success
+- TypeScript/Hono fallback Worker now ports the same route surface and D1-backed behavior
+- `npm run check` passes for the fallback Worker
+- `wrangler deploy --dry-run --env preview` bundles the fallback Worker successfully
 
 Active workstream:
 
@@ -25,36 +24,21 @@ Active workstream:
 
 ## Remaining Work
 
-- apply migrations to the preview D1 database and verify preview deploy behavior
-- deploy the preview Worker and run the same smoke checks against Cloudflare, not just local `pywrangler`
+- deploy the TypeScript preview Worker to Cloudflare and run the full smoke checks there
 - decide whether production should start with starter plants or an empty dashboard
 - add remaining presentation extras that still matter for handoff, mainly favicon/final branding polish
 - complete production cutover on the chosen Cloudflare subdomain and verify HTTPS/mobile behavior
 
-## Phase 0 Goals
-
-The platform spike was used to prove four things before full implementation:
-
-- FastAPI can render HTML inside a Python Worker
-- a signed auth cookie can be set and read
-- a D1 binding can be queried
-- static assets can be served alongside Worker-rendered routes
-
 ## Project Layout
 
-- `src/entry.py`: Cloudflare Worker entrypoint
-- `src/app.py`: FastAPI app assembly and router registration
-- `src/auth.py`: signed auth cookie and CSRF helpers
-- `src/db.py`: reusable D1 query helpers
-- `src/models.py`: lightweight view models for dashboard data
-- `src/plants.py`: first plant query layer backed by D1
-- `src/plant_status.py`: watering status, due-date, and dashboard summary logic
-- `src/routes/`: route modules split by responsibility
-- `src/ui.py`: template rendering and shared request context
-- `src/templates/`: server-rendered HTML templates
+- `worker/index.ts`: active Cloudflare Worker entrypoint and route registration
+- `worker/auth.ts`: signed auth cookie and CSRF helpers for the fallback Worker
+- `worker/plants.ts`: D1 access, form validation, plant models, and dashboard status logic
+- `worker/render.ts`: HTML page rendering helpers for login, dashboard, forms, and errors
 - `src/templates/error.html`: styled fallback page for invalid form submissions
 - `src/assets/`: static assets served by Workers
 - `migrations/0001_initial_schema.sql`: initial D1 schema
+- `src/*.py` and `src/routes/*.py`: previous Python Worker implementation retained as reference while the TypeScript Worker becomes the deployable path
 - `tests/test_auth_helpers.py`: stdlib-only smoke tests for auth and CSRF helpers
 - `tests/test_plant_form.py`: plant form parsing and validation tests
 - `tests/test_models.py`: model normalization and display helper tests
@@ -62,101 +46,94 @@ The platform spike was used to prove four things before full implementation:
 
 ## Phase 1 Next Tasks
 
-- validate preview migrations and preview deploy in Cloudflare
+- validate preview deploy in Cloudflare using the TypeScript Worker
 - add any final dashboard polish after preview feedback
 - decide whether to ship with starter seed data or an empty first-run state
 - harden deployment notes for preview and production cutover
 
 ## Local Setup
 
-Cloudflare's current Python Worker flow uses `uv` and `pywrangler`.
+The active runtime now uses a standard TypeScript Worker with Hono.
 
-1. Create and activate a Python virtualenv if needed.
-2. Install the Python dependencies:
-
-```bash
-pip install fastapi jinja2 workers-py workers-runtime-sdk uv
-```
-
-3. Install Wrangler locally:
+1. Install dependencies:
 
 ```bash
-npm install --save-dev wrangler
+npm install
 ```
 
-4. Copy the local secrets template:
+2. Copy the local secrets template:
 
 ```bash
 cp .dev.vars.example .dev.vars
 ```
 
-5. Create your D1 databases and replace the placeholder IDs in `wrangler.jsonc`.
+3. Create your D1 databases and replace the IDs in `wrangler.jsonc`.
 
 Suggested names:
 
 - `garden-dashboard-production`
 - `garden-dashboard-preview`
 
-6. Apply the schema locally:
+4. Apply the schema locally:
 
 ```bash
-./node_modules/.bin/wrangler d1 migrations apply DB --local
+npm run d1:migrate:local
 ```
 
-7. Start the local dev server:
+5. Start the local dev server:
 
 ```bash
-PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler dev --ip 127.0.0.1 --port 8787
+npm run dev
 ```
 
 ## Useful Commands
 
-Run the full current test suite:
+Type-check the fallback Worker:
 
 ```bash
-python3 -m unittest tests/test_auth_helpers.py tests/test_models.py tests/test_plant_form.py tests/test_plant_status.py
-```
-
-Run only the stdlib auth helper test:
-
-```bash
-python3 -m unittest tests/test_auth_helpers.py
+npm run check
 ```
 
 Create a preview D1 database:
 
 ```bash
-./node_modules/.bin/wrangler d1 create garden-dashboard-preview
+npx wrangler d1 create garden-dashboard-preview
 ```
 
 Create a production D1 database:
 
 ```bash
-./node_modules/.bin/wrangler d1 create garden-dashboard-production
+npx wrangler d1 create garden-dashboard-production
 ```
 
 Apply preview migrations:
 
 ```bash
-./node_modules/.bin/wrangler d1 migrations apply DB --env preview
+npm run d1:migrate:preview
 ```
 
 Apply production migrations:
 
 ```bash
-./node_modules/.bin/wrangler d1 migrations apply DB --env ""
+npm run d1:migrate:prod
 ```
 
 Deploy the preview environment:
 
 ```bash
-PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy --env preview
+npm run deploy:preview
 ```
 
 Deploy production:
 
 ```bash
-PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
+npm run deploy
+```
+
+Python spike regression tests:
+
+```bash
+python3 -m unittest tests/test_auth_helpers.py tests/test_models.py tests/test_plant_form.py tests/test_plant_status.py
 ```
 
 ## Current Routes
