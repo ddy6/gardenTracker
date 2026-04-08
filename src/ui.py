@@ -9,14 +9,17 @@ from auth import get_csrf_token_for_request, request_is_authenticated
 from config import APP_NAME, CSRF_COOKIE_NAME, CSRF_FORM_FIELD_NAME, CSRF_TOKEN_TTL_SECONDS, get_timezone_name, get_worker_name
 
 TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
-TEMPLATE_ENV = Environment(
-    loader=FileSystemLoader(str(TEMPLATES_DIR)),
-    autoescape=select_autoescape(["html", "xml"]),
-)
+
+
+def build_template_environment() -> Environment:
+    return Environment(
+        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+        autoescape=select_autoescape(["html", "xml"]),
+    )
 
 
 def render_template(name: str, **context) -> HTMLResponse:
-    template = TEMPLATE_ENV.get_template(name)
+    template = build_template_environment().get_template(name)
     return HTMLResponse(template.render(**context))
 
 
