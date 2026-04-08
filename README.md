@@ -1,10 +1,27 @@
-# Garden Dashboard Worker Spike
+# Garden Dashboard Cloudflare App
 
-This repo currently contains the Phase 0 spike for a Cloudflare-native build of the Garden Dashboard app.
+This repo now contains a completed Phase 0 platform spike and is ready to move into Phase 1 implementation for the real app skeleton.
 
-## Goals
+## Status
 
-The spike is meant to prove four things before full implementation:
+Phase 0 was completed on April 8, 2026.
+
+Verified successfully:
+
+- local Python Worker boot via `pywrangler`
+- FastAPI HTML route rendering
+- static asset serving
+- D1 local migration and query execution
+- signed auth cookie issuance and protected route access
+- protected D1 route returning success
+
+Active workstream:
+
+- Phase 1 project bootstrap and real app skeleton
+
+## Phase 0 Goals
+
+The platform spike was used to prove four things before full implementation:
 
 - FastAPI can render HTML inside a Python Worker
 - a signed auth cookie can be set and read
@@ -22,40 +39,55 @@ The spike is meant to prove four things before full implementation:
 - `migrations/0001_initial_schema.sql`: initial D1 schema
 - `tests/test_auth_helpers.py`: stdlib-only smoke tests for cookie signing
 
+## Phase 1 Next Tasks
+
+- refactor the spike routes into stable auth and plant route modules
+- replace the temporary protected home page with the real dashboard shell
+- turn the current D1 probe layer into reusable plant query helpers
+- add base layout partials needed for the production UI
+- validate preview migrations and preview deploy in Cloudflare
+- keep the current auth flow, but wire it into the real dashboard routes
+
 ## Local Setup
 
 Cloudflare's current Python Worker flow uses `uv` and `pywrangler`.
 
-1. Install `uv` if it is not already installed.
-2. Sync the Python environment:
+1. Create and activate a Python virtualenv if needed.
+2. Install the Python dependencies:
 
 ```bash
-uv sync
+pip install fastapi jinja2 workers-py workers-runtime-sdk uv
 ```
 
-3. Copy the local secrets template:
+3. Install Wrangler locally:
+
+```bash
+npm install --save-dev wrangler
+```
+
+4. Copy the local secrets template:
 
 ```bash
 cp .dev.vars.example .dev.vars
 ```
 
-4. Create your D1 databases and replace the placeholder IDs in `wrangler.jsonc`.
+5. Create your D1 databases and replace the placeholder IDs in `wrangler.jsonc`.
 
 Suggested names:
 
 - `garden-dashboard-production`
 - `garden-dashboard-preview`
 
-5. Apply the schema locally:
+6. Apply the schema locally:
 
 ```bash
-uv run pywrangler d1 migrations apply DB --local
+./node_modules/.bin/wrangler d1 migrations apply DB --local
 ```
 
-6. Start the local dev server:
+7. Start the local dev server:
 
 ```bash
-uv run pywrangler dev
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler dev --ip 127.0.0.1 --port 8787
 ```
 
 ## Useful Commands
@@ -69,25 +101,37 @@ python3 -m unittest tests/test_auth_helpers.py
 Create a preview D1 database:
 
 ```bash
-uv run pywrangler d1 create garden-dashboard-preview
+./node_modules/.bin/wrangler d1 create garden-dashboard-preview
 ```
 
 Create a production D1 database:
 
 ```bash
-uv run pywrangler d1 create garden-dashboard-production
+./node_modules/.bin/wrangler d1 create garden-dashboard-production
+```
+
+Apply preview migrations:
+
+```bash
+./node_modules/.bin/wrangler d1 migrations apply DB --env preview
+```
+
+Apply production migrations:
+
+```bash
+./node_modules/.bin/wrangler d1 migrations apply DB --env ""
 ```
 
 Deploy the preview environment:
 
 ```bash
-uv run pywrangler deploy --env preview
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy --env preview
 ```
 
 Deploy production:
 
 ```bash
-uv run pywrangler deploy
+PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
 ```
 
 ## Current Routes
@@ -98,3 +142,5 @@ uv run pywrangler deploy
 - `POST /logout`: clears auth cookie
 - `GET /`: protected HTML page showing cookie + D1 status
 - `GET /debug/d1`: protected D1 probe endpoint
+
+These routes are temporary spike routes and should be replaced or refactored during Phase 1.
