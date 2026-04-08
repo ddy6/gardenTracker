@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="panel form-panel">
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Garden Dashboard</p>
+        <h1>{{ form_title }}</h1>
+        <p class="lede">Capture the basics now. Watering logic and low-friction actions come in the next phase.</p>
+      </div>
+      <a href="/" class="button-link button-link-secondary">Back to dashboard</a>
+    </div>
+
+    <form method="post" action="{{ form_action }}" class="stack">
+      <div class="form-grid">
+        <label class="field">
+          <span>Plant name</span>
+          <input type="text" name="name" value="{{ form_values.name }}" required>
+          {% if errors.name %}
+            <span class="field-error">{{ errors.name }}</span>
+          {% endif %}
+        </label>
+
+        <label class="field">
+          <span>Location</span>
+          <input type="text" name="location" value="{{ form_values.location }}" placeholder="Bed A, porch, kitchen window">
+        </label>
+
+        <label class="field">
+          <span>Watering interval (days)</span>
+          <input type="number" min="1" step="1" name="watering_interval_days" value="{{ form_values.watering_interval_days }}" placeholder="3">
+          {% if errors.watering_interval_days %}
+            <span class="field-error">{{ errors.watering_interval_days }}</span>
+          {% endif %}
+        </label>
+
+        <label class="field">
+          <span>Last watered</span>
+          <input type="date" name="last_watered_date" value="{{ form_values.last_watered_date }}">
+          {% if errors.last_watered_date %}
+            <span class="field-error">{{ errors.last_watered_date }}</span>
+          {% endif %}
+        </label>
+      </div>
+
+      <label class="field">
+        <span>Notes</span>
+        <textarea name="notes" rows="6" placeholder="Seed source, pruning notes, or anything worth remembering.">{{ form_values.notes }}</textarea>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">{{ submit_label }}</button>
+        <a href="/" class="button-link button-link-secondary">Cancel</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

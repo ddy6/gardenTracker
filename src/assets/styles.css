@@ -97,6 +97,16 @@ input {
   background: #fff;
 }
 
+textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font: inherit;
+  background: #fff;
+  resize: vertical;
+}
+
 button {
   border: 0;
   border-radius: 999px;
@@ -113,6 +123,30 @@ button.secondary {
   background: var(--accent-soft);
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.85rem 1.25rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: #fff;
+  background: var(--accent);
+}
+
+.button-link-secondary,
+button.danger,
+button.secondary {
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+
+button.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
 .flash {
   border-radius: 12px;
   padding: 0.85rem 1rem;
@@ -123,11 +157,41 @@ button.secondary {
   color: var(--danger);
 }
 
+.flash-success {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.9rem;
+}
+
+.form-panel {
+  display: grid;
+  gap: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.form-actions,
+.hero-actions,
+.plant-actions,
+.empty-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
-  margin-top: 2rem;
 }
 
 .status-card {
@@ -223,6 +287,10 @@ button.secondary {
   font-size: 0.95rem;
 }
 
+.plant-actions {
+  margin-top: 1rem;
+}
+
 .empty-state {
   border: 1px dashed var(--border);
   border-radius: 18px;
@@ -248,6 +316,10 @@ button.secondary {
 
   .hero {
     flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .plant-heading {

@@ -46,11 +46,11 @@ The platform spike was used to prove four things before full implementation:
 
 ## Phase 1 Next Tasks
 
-- add plant create/edit/delete routes and forms
-- add dashboard actions instead of the current empty-state placeholder
-- wire real plant creation into the `plants` query layer
+- add watering status logic and due-date sorting
+- add low-friction "mark watered" actions from the dashboard
+- improve dashboard summaries beyond simple scheduled/unscheduled counts
 - validate preview migrations and preview deploy in Cloudflare
-- keep the current auth flow, but remove remaining spike-only copy
+- remove the remaining spike-oriented copy from the forms and dashboard
 
 ## Local Setup
 
@@ -145,4 +145,9 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
 - `POST /login`: checks shared password and sets signed cookie
 - `POST /logout`: clears auth cookie
 - `GET /`: protected dashboard shell backed by the `plants` table
+- `GET /plants/new`: add plant form
+- `POST /plants/new`: create plant
+- `GET /plants/{id}/edit`: edit plant form
+- `POST /plants/{id}/edit`: update plant
+- `POST /plants/{id}/delete`: delete plant
 - `GET /debug/d1`: protected D1 probe endpoint

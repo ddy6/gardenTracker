@@ -5,6 +5,10 @@ def get_database(env):
     return database
 
 
+def _to_python(value):
+    return value.to_py() if hasattr(value, "to_py") else value
+
+
 async def execute(env, statement: str, *params):
     prepared = get_database(env).prepare(statement)
     if params:
@@ -14,14 +18,16 @@ async def execute(env, statement: str, *params):
 
 async def fetch_all(env, statement: str, *params):
     result = await execute(env, statement, *params)
-    return list(getattr(result, "results", []) or [])
+    rows = list(getattr(result, "results", []) or [])
+    return [_to_python(row) for row in rows]
 
 
 async def fetch_one(env, statement: str, *params):
     prepared = get_database(env).prepare(statement)
     if params:
         prepared = prepared.bind(*params)
-    return await prepared.first()
+    row = await prepared.first()
+    return _to_python(row)
 
 
 async def ping_database(env) -> tuple[bool, str | None]:

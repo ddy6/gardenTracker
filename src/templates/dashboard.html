@@ -6,12 +6,19 @@
       <div>
         <p class="eyebrow">Garden Dashboard</p>
         <h1>Plant Overview</h1>
-        <p class="lede">Phase 1 replaces the spike landing page with the real dashboard shell backed by the `plants` table.</p>
+        <p class="lede">Plants can now be created, edited, and removed from the real D1-backed dashboard.</p>
       </div>
-      <form method="post" action="/logout">
-        <button type="submit" class="secondary">Log out</button>
-      </form>
+      <div class="hero-actions">
+        <a href="/plants/new" class="button-link">Add plant</a>
+        <form method="post" action="/logout">
+          <button type="submit" class="secondary">Log out</button>
+        </form>
+      </div>
     </div>
+
+    {% if notice_message %}
+      <p class="flash flash-success">{{ notice_message }}</p>
+    {% endif %}
 
     <div class="status-grid">
       <article class="status-card">
@@ -49,13 +56,22 @@
               <span>Last watered: {{ plant.last_watered_display }}</span>
               <span>Record #{{ plant.id }}</span>
             </div>
+            <div class="plant-actions">
+              <a href="/plants/{{ plant.id }}/edit" class="button-link button-link-secondary">Edit</a>
+              <form method="post" action="/plants/{{ plant.id }}/delete" onsubmit="return confirm('Delete {{ plant.name }}?');">
+                <button type="submit" class="danger">Delete</button>
+              </form>
+            </div>
           </article>
         {% endfor %}
       </section>
     {% else %}
       <section class="empty-state">
         <h2>No plants yet</h2>
-        <p>The app skeleton is now reading from the real `plants` table. The next slice will add the first create/edit routes and forms.</p>
+        <p>The dashboard is ready for real data. Add the first plant to start using the tracker.</p>
+        <div class="empty-actions">
+          <a href="/plants/new" class="button-link">Add the first plant</a>
+        </div>
       </section>
     {% endif %}
   </section>
