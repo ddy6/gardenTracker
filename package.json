@@ -1,0 +1,13 @@
+{
+  "name": "garden-dashboard",
+  "private": true,
+  "scripts": {
+    "dev": "pywrangler dev",
+    "deploy": "pywrangler deploy",
+    "deploy:preview": "pywrangler deploy --env preview",
+    "d1:migrate:local": "pywrangler d1 migrations apply DB --local"
+  },
+  "devDependencies": {
+    "wrangler": "^4.81.0"
+  }
+}

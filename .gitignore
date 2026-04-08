@@ -1,0 +1,13 @@
+# Planning and working docs
+guide.md
+implementation-plan.md
+
+# Local development
+.dev.vars
+.venv/
+.venv-workers/
+.wrangler/
+node_modules/
+python_modules/
+__pycache__/
+.pytest_cache/

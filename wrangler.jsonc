@@ -1,0 +1,40 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "garden-dashboard",
+	"main": "src/entry.py",
+	"compatibility_date": "2026-04-07",
+	"compatibility_flags": [
+		"python_workers"
+	],
+	"preview_urls": true,
+	"assets": {
+		"directory": "./src/assets"
+	},
+	"vars": {
+		"WORKER_NAME": "garden-dashboard-production"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "garden-dashboard-production",
+			"database_id": "e4772051-1efa-430f-aa40-289af6946373",
+			"preview_database_id": "garden-dashboard-local",
+			"migrations_dir": "migrations"
+		}
+	],
+	"env": {
+		"preview": {
+			"vars": {
+				"WORKER_NAME": "garden-dashboard-preview"
+			},
+			"d1_databases": [
+				{
+					"binding": "DB",
+					"database_name": "garden-dashboard-preview",
+					"database_id": "acd6bb4c-6a02-494f-ab07-efc8a9233005",
+					"migrations_dir": "migrations"
+				}
+			]
+		}
+	}
+}
