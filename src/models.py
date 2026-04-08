@@ -1,7 +1,14 @@
 from dataclasses import dataclass
 
 
+def _maybe_none(value):
+    if value is None or type(value).__name__ == "JsNull":
+        return None
+    return value
+
+
 def _int_or_none(value):
+    value = _maybe_none(value)
     if value is None or value == "":
         return None
     return int(value)
@@ -23,12 +30,12 @@ class PlantSummary:
         return cls(
             id=int(row["id"]),
             name=row["name"],
-            location=row.get("location"),
-            notes=row.get("notes"),
+            location=_maybe_none(row.get("location")),
+            notes=_maybe_none(row.get("notes")),
             watering_interval_days=_int_or_none(row.get("watering_interval_days")),
-            last_watered_date=row.get("last_watered_date"),
-            created_at=row.get("created_at"),
-            updated_at=row.get("updated_at"),
+            last_watered_date=_maybe_none(row.get("last_watered_date")),
+            created_at=_maybe_none(row.get("created_at")),
+            updated_at=_maybe_none(row.get("updated_at")),
         )
 
     @property

@@ -60,6 +60,14 @@ DELETE FROM plants
 WHERE id = ?
 """
 
+MARK_WATERED_QUERY = """
+UPDATE plants
+SET
+    last_watered_date = ?,
+    updated_at = CURRENT_TIMESTAMP
+WHERE id = ?
+"""
+
 
 async def list_plants(env) -> list[PlantSummary]:
     rows = await fetch_all(env, LIST_PLANTS_QUERY)
@@ -100,3 +108,7 @@ async def update_plant(env, plant_id: int, payload: PlantWritePayload) -> None:
 
 async def delete_plant(env, plant_id: int) -> None:
     await execute(env, DELETE_PLANT_QUERY, plant_id)
+
+
+async def mark_plant_watered(env, plant_id: int, watered_on: str) -> None:
+    await execute(env, MARK_WATERED_QUERY, watered_on, plant_id)

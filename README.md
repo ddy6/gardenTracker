@@ -1,6 +1,6 @@
 # Garden Dashboard Cloudflare App
 
-This repo now contains a completed Phase 0 platform spike and is ready to move into Phase 1 implementation for the real app skeleton.
+This repo now contains a completed Phase 0 platform spike and an active Phase 1 implementation with real plant CRUD and a watering-aware dashboard.
 
 ## Status
 
@@ -17,7 +17,7 @@ Verified successfully:
 
 Active workstream:
 
-- Phase 1 project bootstrap and real app skeleton
+- Phase 1 dashboard polish, preview validation, and deployment hardening
 
 ## Phase 0 Goals
 
@@ -36,21 +36,23 @@ The platform spike was used to prove four things before full implementation:
 - `src/db.py`: reusable D1 query helpers
 - `src/models.py`: lightweight view models for dashboard data
 - `src/plants.py`: first plant query layer backed by D1
+- `src/plant_status.py`: watering status, due-date, and dashboard summary logic
 - `src/routes/`: route modules split by responsibility
 - `src/ui.py`: template rendering and shared request context
 - `src/templates/`: server-rendered HTML templates
 - `src/assets/`: static assets served by Workers
 - `migrations/0001_initial_schema.sql`: initial D1 schema
 - `tests/test_auth_helpers.py`: stdlib-only smoke tests for cookie signing
+- `tests/test_plant_form.py`: plant form parsing and validation tests
 - `tests/test_models.py`: model normalization and display helper tests
+- `tests/test_plant_status.py`: watering status and dashboard sorting tests
 
 ## Phase 1 Next Tasks
 
-- add watering status logic and due-date sorting
-- add low-friction "mark watered" actions from the dashboard
-- improve dashboard summaries beyond simple scheduled/unscheduled counts
 - validate preview migrations and preview deploy in Cloudflare
-- remove the remaining spike-oriented copy from the forms and dashboard
+- add any final dashboard polish after preview feedback
+- decide whether v1 needs schedule filters or stays intentionally simple
+- harden deployment notes for preview and production cutover
 
 ## Local Setup
 
@@ -144,10 +146,11 @@ PATH="$PWD/.venv/bin:$PATH" .venv/bin/pywrangler deploy
 - `GET /login`: shared-password login page
 - `POST /login`: checks shared password and sets signed cookie
 - `POST /logout`: clears auth cookie
-- `GET /`: protected dashboard shell backed by the `plants` table
+- `GET /`: protected watering dashboard with sorted plant statuses
 - `GET /plants/new`: add plant form
 - `POST /plants/new`: create plant
 - `GET /plants/{id}/edit`: edit plant form
 - `POST /plants/{id}/edit`: update plant
+- `POST /plants/{id}/water`: mark a plant as watered today
 - `POST /plants/{id}/delete`: delete plant
 - `GET /debug/d1`: protected D1 probe endpoint

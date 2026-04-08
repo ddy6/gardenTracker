@@ -8,6 +8,28 @@ from models import PlantSummary
 
 
 class PlantSummaryTests(unittest.TestCase):
+    def test_from_row_handles_worker_js_null_values(self):
+        JsNull = type("JsNull", (), {})
+        js_null = JsNull()
+        row = {
+            "id": "8",
+            "name": "Mint",
+            "location": js_null,
+            "notes": js_null,
+            "watering_interval_days": js_null,
+            "last_watered_date": js_null,
+            "created_at": "2026-04-08T12:00:00",
+            "updated_at": "2026-04-08T12:00:00",
+        }
+
+        plant = PlantSummary.from_row(row)
+
+        self.assertIsNone(plant.location)
+        self.assertIsNone(plant.notes)
+        self.assertIsNone(plant.watering_interval_days)
+        self.assertIsNone(plant.last_watered_date)
+        self.assertEqual(plant.schedule_display, "No schedule")
+
     def test_from_row_normalizes_fields(self):
         row = {
             "id": "7",

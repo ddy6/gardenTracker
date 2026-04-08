@@ -6,6 +6,8 @@
   --border: #d7d2c4;
   --accent: #45634e;
   --accent-soft: #deebdf;
+  --warning: #8a6437;
+  --warning-soft: #f3e6d5;
   --danger: #8c4b43;
   --danger-soft: #f5ddd9;
   --shadow: 0 18px 40px rgba(36, 49, 39, 0.08);
@@ -221,6 +223,11 @@ button.danger {
   color: var(--danger);
 }
 
+.subtle-note {
+  margin: -1rem 0 0;
+  color: var(--muted);
+}
+
 .status-meta,
 .note p {
   margin: 0;
@@ -253,6 +260,13 @@ button.danger {
   align-items: start;
 }
 
+.plant-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: end;
+}
+
 .plant-heading h2,
 .empty-state h2 {
   margin: 0;
@@ -272,6 +286,34 @@ button.danger {
   font-size: 0.9rem;
   font-weight: 700;
   padding: 0.45rem 0.8rem;
+}
+
+.plant-status {
+  white-space: nowrap;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.45rem 0.8rem;
+}
+
+.plant-status-overdue {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.plant-status-due-soon {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.plant-status-good {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.plant-status-no-schedule {
+  background: #ece8de;
+  color: var(--muted);
 }
 
 .plant-notes {
@@ -324,5 +366,9 @@ button.danger {
 
   .plant-heading {
     flex-direction: column;
+  }
+
+  .plant-badges {
+    justify-content: start;
   }
 }

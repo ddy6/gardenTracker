@@ -6,7 +6,7 @@
       <div>
         <p class="eyebrow">Garden Dashboard</p>
         <h1>Plant Overview</h1>
-        <p class="lede">Plants can now be created, edited, and removed from the real D1-backed dashboard.</p>
+        <p class="lede">Plants are now sorted by what needs attention first, with one-click watering updates from the dashboard.</p>
       </div>
       <div class="hero-actions">
         <a href="/plants/new" class="button-link">Add plant</a>
@@ -28,37 +28,49 @@
       </article>
 
       <article class="status-card">
-        <p class="status-label">Scheduled</p>
-        <p class="status-value success">{{ scheduled_plants }}</p>
-        <p class="status-meta">Plants with a watering interval.</p>
+        <p class="status-label">Overdue</p>
+        <p class="status-value error">{{ overdue_count }}</p>
+        <p class="status-meta">Plants that should already have been watered.</p>
       </article>
 
       <article class="status-card">
-        <p class="status-label">No schedule</p>
-        <p class="status-value">{{ unscheduled_plants }}</p>
-        <p class="status-meta">Plants still missing a watering cadence.</p>
+        <p class="status-label">Due soon</p>
+        <p class="status-value success">{{ due_soon_count }}</p>
+        <p class="status-meta">Plants due today, within the next two days, or still missing a first watering date.</p>
       </article>
     </div>
 
-    {% if plants %}
+    {% if no_schedule_count %}
+      <p class="subtle-note">{{ no_schedule_count }} plant{% if no_schedule_count != 1 %}s{% endif %} still need{% if no_schedule_count == 1 %}s{% endif %} a watering interval to join the schedule.</p>
+    {% endif %}
+
+    {% if dashboard_plants %}
       <section class="plant-list" aria-label="Plants">
-        {% for plant in plants %}
+        {% for item in dashboard_plants %}
           <article class="plant-card">
             <div class="plant-heading">
               <div>
-                <h2>{{ plant.name }}</h2>
-                <p class="plant-location">{{ plant.location_display }}</p>
+                <h2>{{ item.plant.name }}</h2>
+                <p class="plant-location">{{ item.plant.location_display }}</p>
               </div>
-              <span class="plant-schedule">{{ plant.schedule_display }}</span>
+              <div class="plant-badges">
+                <span class="plant-status plant-status-{{ item.status_key }}">{{ item.status_label }}</span>
+                <span class="plant-schedule">{{ item.plant.schedule_display }}</span>
+              </div>
             </div>
-            <p class="plant-notes">{{ plant.note_preview }}</p>
+            <p class="plant-notes">{{ item.plant.note_preview }}</p>
             <div class="plant-meta">
-              <span>Last watered: {{ plant.last_watered_display }}</span>
-              <span>Record #{{ plant.id }}</span>
+              <span>Last watered: {{ item.plant.last_watered_display }}</span>
+              <span>Next due: {{ item.next_due_display }}</span>
+              <span>{{ item.due_hint }}</span>
+              <span>Record #{{ item.plant.id }}</span>
             </div>
             <div class="plant-actions">
-              <a href="/plants/{{ plant.id }}/edit" class="button-link button-link-secondary">Edit</a>
-              <form method="post" action="/plants/{{ plant.id }}/delete" onsubmit="return confirm('Delete {{ plant.name }}?');">
+              <form method="post" action="/plants/{{ item.plant.id }}/water">
+                <button type="submit">Mark watered</button>
+              </form>
+              <a href="/plants/{{ item.plant.id }}/edit" class="button-link button-link-secondary">Edit</a>
+              <form method="post" action="/plants/{{ item.plant.id }}/delete" onsubmit="return confirm('Delete {{ item.plant.name }}?');">
                 <button type="submit" class="danger">Delete</button>
               </form>
             </div>
@@ -68,7 +80,7 @@
     {% else %}
       <section class="empty-state">
         <h2>No plants yet</h2>
-        <p>The dashboard is ready for real data. Add the first plant to start using the tracker.</p>
+        <p>The watering dashboard is ready. Add the first plant to start tracking what needs attention.</p>
         <div class="empty-actions">
           <a href="/plants/new" class="button-link">Add the first plant</a>
         </div>

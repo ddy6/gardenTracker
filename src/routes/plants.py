@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, Request
 
 from auth import request_is_authenticated
 from plant_form import PlantFormValues, parse_plant_form_body, validate_plant_form
-from plants import create_plant, delete_plant, get_plant, update_plant
+from plant_status import get_today
+from plants import create_plant, delete_plant, get_plant, mark_plant_watered, update_plant
 from ui import build_template_context, get_env, redirect, render_template
 
 router = APIRouter()
@@ -143,3 +144,18 @@ async def delete_plant_action(request: Request, plant_id: int):
 
     await delete_plant(get_env(request), plant_id)
     return redirect("/?notice=deleted")
+
+
+@router.post("/plants/{plant_id}/water")
+async def mark_plant_watered_action(request: Request, plant_id: int):
+    unauthorized = require_authentication(request)
+    if unauthorized:
+        return unauthorized
+
+    env = get_env(request)
+    plant = await get_plant(env, plant_id)
+    if plant is None:
+        raise HTTPException(status_code=404, detail="Plant not found")
+
+    await mark_plant_watered(env, plant_id, get_today(env).isoformat())
+    return redirect("/?notice=watered")
