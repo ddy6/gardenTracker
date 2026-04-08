@@ -1,11 +1,11 @@
-import { APP_NAME, CSRF_FORM_FIELD_NAME } from "./config";
+import { APP_NAME, CSRF_FORM_FIELD_NAME } from "./config.ts";
 import type {
   DashboardPlant,
   DashboardSummary,
   PlantFormValues,
   PlantSummary,
   StatusFilter,
-} from "./plants";
+} from "./plants.ts";
 
 interface DashboardFilterOption {
   key: StatusFilter;
@@ -155,7 +155,7 @@ function renderPlantCard(item: DashboardPlant, csrfToken: string, activeStatusFi
         <button type="submit">Mark watered</button>
       </form>
       <a href="${escapeHtml(editUrl)}" class="button-link button-link-secondary">Edit</a>
-      <form method="post" action="${escapeHtml(deleteAction)}" onsubmit="return confirm('Delete this plant?');">
+      <form method="post" action="${escapeHtml(deleteAction)}">
         ${csrfField(csrfToken)}
         <button type="submit" class="danger">Delete</button>
       </form>

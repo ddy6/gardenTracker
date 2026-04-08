@@ -9,7 +9,8 @@
     "d1:migrate:local": "wrangler d1 migrations apply DB --local",
     "d1:migrate:preview": "wrangler d1 migrations apply DB --env preview",
     "d1:migrate:prod": "wrangler d1 migrations apply DB --env \"\"",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test:worker": "node --test --experimental-strip-types tests/worker_security.test.ts"
   },
   "dependencies": {
     "hono": "^4.8.12"

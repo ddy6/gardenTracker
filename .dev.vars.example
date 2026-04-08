@@ -1,3 +1,5 @@
 APP_PASSWORD=change-me
 SESSION_SECRET=replace-with-a-long-random-secret
 APP_TIMEZONE=America/New_York
+AUTH_VERSION=1
+ENABLE_DEBUG_ROUTES=true

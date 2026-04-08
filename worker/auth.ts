@@ -6,9 +6,10 @@ import {
   AUTH_COOKIE_TTL_SECONDS,
   CSRF_COOKIE_NAME,
   CSRF_TOKEN_TTL_SECONDS,
+  getAuthVersion,
   type AppBindings,
   type AppEnv,
-} from "./config";
+} from "./config.ts";
 
 const encoder = new TextEncoder();
 
@@ -48,32 +49,55 @@ function getSecret(env: AppBindings): string {
   return env.SESSION_SECRET || "";
 }
 
+async function getSessionScope(env: AppBindings): Promise<string> {
+  const secret = getSecret(env);
+  const password = env.APP_PASSWORD || "";
+  const authVersion = getAuthVersion(env);
+  if (!secret || !password) {
+    return "";
+  }
+
+  const scope = await sign(`session-scope|${password}|${authVersion}`, secret);
+  return scope.slice(0, 24);
+}
+
 export async function createAuthCookie(
-  secret: string,
+  env: AppBindings,
   now = nowInSeconds(),
   ttlSeconds = AUTH_COOKIE_TTL_SECONDS,
 ): Promise<string> {
+  const secret = getSecret(env);
+  const sessionScope = await getSessionScope(env);
+  if (!secret || !sessionScope) {
+    return "";
+  }
+
   const expiresAt = now + ttlSeconds;
-  const payload = `garden|${expiresAt}`;
+  const payload = `garden|${sessionScope}|${expiresAt}`;
   return `${payload}|${await sign(payload, secret)}`;
 }
 
 export async function isValidAuthCookie(
   cookieValue: string | undefined,
-  secret: string,
+  env: AppBindings,
   now = nowInSeconds(),
 ): Promise<boolean> {
+  const secret = getSecret(env);
+  const expectedScope = await getSessionScope(env);
   if (!cookieValue || !secret) {
     return false;
   }
 
   const parts = cookieValue.split("|");
-  if (parts.length !== 3) {
+  if (parts.length !== 4) {
     return false;
   }
 
-  const [prefix, expiresAtText, signature] = parts;
+  const [prefix, sessionScope, expiresAtText, signature] = parts;
   if (prefix !== "garden") {
+    return false;
+  }
+  if (!expectedScope || sessionScope !== expectedScope) {
     return false;
   }
 
@@ -82,7 +106,7 @@ export async function isValidAuthCookie(
     return false;
   }
 
-  const expected = await sign(`${prefix}|${expiresAt}`, secret);
+  const expected = await sign(`${prefix}|${sessionScope}|${expiresAt}`, secret);
   return signature === expected;
 }
 
@@ -148,7 +172,7 @@ export async function csrfTokensMatch(
 export async function getCsrfTokenForRequest(c: Context<AppEnv>): Promise<string> {
   const secret = getSecret(c.env);
   const authCookieValue = getCookie(c, AUTH_COOKIE_NAME);
-  if (await isValidAuthCookie(authCookieValue, secret)) {
+  if (await isValidAuthCookie(authCookieValue, c.env)) {
     return createAuthenticatedCsrfToken(authCookieValue as string, secret);
   }
 
@@ -165,7 +189,7 @@ export async function requestHasValidCsrfToken(
 ): Promise<boolean> {
   const secret = getSecret(c.env);
   const authCookieValue = getCookie(c, AUTH_COOKIE_NAME);
-  if (await isValidAuthCookie(authCookieValue, secret)) {
+  if (await isValidAuthCookie(authCookieValue, c.env)) {
     const expectedToken = await createAuthenticatedCsrfToken(authCookieValue as string, secret);
     return Boolean(submittedToken && expectedToken && submittedToken === expectedToken);
   }
@@ -176,12 +200,15 @@ export async function requestHasValidCsrfToken(
 
 export async function requestIsAuthenticated(c: Context<AppEnv>): Promise<boolean> {
   const cookieValue = getCookie(c, AUTH_COOKIE_NAME);
-  return isValidAuthCookie(cookieValue, getSecret(c.env));
+  return isValidAuthCookie(cookieValue, c.env);
 }
 
 export async function setAuthCookieOnContext(c: Context<AppEnv>): Promise<void> {
   const requestUrl = new URL(c.req.url);
-  const cookieValue = await createAuthCookie(getSecret(c.env));
+  const cookieValue = await createAuthCookie(c.env);
+  if (!cookieValue) {
+    throw new Error("Authentication is not configured correctly.");
+  }
   setCookie(c, AUTH_COOKIE_NAME, cookieValue, {
     maxAge: AUTH_COOKIE_TTL_SECONDS,
     httpOnly: true,

@@ -1,6 +1,6 @@
 # Garden Dashboard Cloudflare App
 
-This repo now contains a completed product implementation and an active Cloudflare runtime fallback. The app behavior is already built; the current task is getting the deployable Worker layer onto Cloudflare cleanly.
+This repo now contains the live Cloudflare Worker for Garden Dashboard. The app behavior is built and deployed; the current task is security hardening for public beta on `garden.paropter.com`.
 
 ## Status
 
@@ -16,26 +16,33 @@ Verified successfully:
 - dashboard status filters with filter-preserving add/edit/delete/water flows
 - TypeScript/Hono fallback Worker now ports the same route surface and D1-backed behavior
 - `npm run check` passes for the fallback Worker
-- `wrangler deploy --dry-run --env preview` bundles the fallback Worker successfully
+- `npm run test:worker` passes for the active TypeScript Worker
+- auth cookies now invalidate when `APP_PASSWORD` changes
+- `AUTH_VERSION` can invalidate all sessions without changing the password
+- `/debug/d1` is disabled by default and only available when `ENABLE_DEBUG_ROUTES=true`
+- HTML responses now send strict CSP and baseline browser hardening headers
+- `wrangler deploy --dry-run` and `wrangler deploy --dry-run --env preview` both bundle successfully
 
 Active workstream:
 
-- preview validation and deployment readiness
+- Cloudflare-side beta hardening and final production verification
 
 ## Remaining Work
 
-- deploy the TypeScript preview Worker to Cloudflare and run the full smoke checks there
-- decide whether production should start with starter plants or an empty dashboard
-- add remaining presentation extras that still matter for handoff, mainly favicon/final branding polish
-- complete production cutover on the chosen Cloudflare subdomain and verify HTTPS/mobile behavior
+- put Cloudflare Access in front of `garden.paropter.com`
+- add a WAF/rate-limit rule for `POST /login`
+- review managed WAF/Bot settings and decide on HSTS for the zone
+- deploy this security slice and verify production headers, session invalidation, and debug-route shutdown
+- decide whether production should start with starter plants or remain empty
+- add any remaining presentation polish that still matters for handoff
 
 ## Project Layout
 
 - `worker/index.ts`: active Cloudflare Worker entrypoint and route registration
-- `worker/auth.ts`: signed auth cookie and CSRF helpers for the fallback Worker
+- `worker/auth.ts`: signed auth cookie, session-scope invalidation, and CSRF helpers
 - `worker/plants.ts`: D1 access, form validation, plant models, and dashboard status logic
 - `worker/render.ts`: HTML page rendering helpers for login, dashboard, forms, and errors
-- `src/templates/error.html`: styled fallback page for invalid form submissions
+- `tests/worker_security.test.ts`: direct Node-run Worker security tests
 - `src/assets/`: static assets served by Workers
 - `migrations/0001_initial_schema.sql`: initial D1 schema
 - `src/*.py` and `src/routes/*.py`: previous Python Worker implementation retained as reference while the TypeScript Worker becomes the deployable path
@@ -44,12 +51,40 @@ Active workstream:
 - `tests/test_models.py`: model normalization and display helper tests
 - `tests/test_plant_status.py`: watering status and dashboard sorting tests
 
-## Phase 1 Next Tasks
+## Security Rollout
 
-- validate preview deploy in Cloudflare using the TypeScript Worker
-- add any final dashboard polish after preview feedback
-- decide whether to ship with starter seed data or an empty first-run state
-- harden deployment notes for preview and production cutover
+Code-side hardening in this repo now assumes these runtime vars exist:
+
+- `APP_PASSWORD`
+- `SESSION_SECRET`
+- `APP_TIMEZONE`
+- `AUTH_VERSION`
+- `ENABLE_DEBUG_ROUTES`
+
+Current intended values:
+
+- production:
+  - `AUTH_VERSION=1`
+  - `ENABLE_DEBUG_ROUTES=false`
+- preview/local:
+  - `AUTH_VERSION=1`
+  - `ENABLE_DEBUG_ROUTES=true`
+
+Operational notes:
+
+- changing `APP_PASSWORD` now invalidates existing sessions after the new Worker version deploys
+- bump `AUTH_VERSION` when you want to force-log-out every user without changing the password
+- keep `ENABLE_DEBUG_ROUTES=false` in production
+
+## Cloudflare Actions
+
+These are still manual:
+
+1. Create a Cloudflare Access self-hosted application for `garden.paropter.com`.
+2. Add allow rules for the specific beta-user email addresses.
+3. Add a WAF rate-limit rule for `POST /login`.
+4. Review Managed WAF rules, Bot Fight Mode, and HSTS for `paropter.com`.
+5. After deploying this commit, verify the production headers and confirm `/debug/d1` is gone on the public domain.
 
 ## Local Setup
 
@@ -92,6 +127,12 @@ Type-check the fallback Worker:
 
 ```bash
 npm run check
+```
+
+Run the direct Worker security tests:
+
+```bash
+npm run test:worker
 ```
 
 Create a preview D1 database:
@@ -150,4 +191,4 @@ python3 -m unittest tests/test_auth_helpers.py tests/test_models.py tests/test_p
 - `POST /plants/{id}/edit`: update plant
 - `POST /plants/{id}/water`: mark a plant as watered today
 - `POST /plants/{id}/delete`: delete plant
-- `GET /debug/d1`: protected D1 probe endpoint
+- `GET /debug/d1`: preview/local-only D1 probe endpoint when `ENABLE_DEBUG_ROUTES=true`

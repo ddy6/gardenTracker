@@ -7,8 +7,8 @@ import {
   requestHasValidCsrfToken,
   requestIsAuthenticated,
   setAuthCookieOnContext,
-} from "./auth";
-import { CSRF_FORM_FIELD_NAME, type AppEnv } from "./config";
+} from "./auth.ts";
+import { CSRF_FORM_FIELD_NAME, debugRoutesEnabled, type AppEnv } from "./config.ts";
 import {
   buildDashboardPlants,
   buildDashboardSummary,
@@ -27,7 +27,7 @@ import {
   STATUS_FILTER_LABELS,
   updatePlant,
   validatePlantForm,
-} from "./plants";
+} from "./plants.ts";
 import {
   dashboardNoticeMessage,
   renderDashboardPage,
@@ -35,10 +35,41 @@ import {
   renderLoginPage,
   renderPlantFormPage,
   withQuery,
-} from "./render";
+} from "./render.ts";
 
-const app = new Hono<AppEnv>();
+export const app = new Hono<AppEnv>();
 type AppContext = Context<AppEnv>;
+
+const HTML_SECURITY_HEADERS: Record<string, string> = {
+  "Cache-Control": "no-store",
+  "Content-Security-Policy":
+    "default-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; script-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'",
+  "Referrer-Policy": "same-origin",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+};
+
+const BASE_SECURITY_HEADERS: Record<string, string> = {
+  "Cache-Control": "no-store",
+  "Referrer-Policy": "same-origin",
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+};
+
+function applySecurityHeaders(response: Response): void {
+  Object.entries(BASE_SECURITY_HEADERS).forEach(([name, value]) => {
+    response.headers.set(name, value);
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+  if (contentType.includes("text/html")) {
+    Object.entries(HTML_SECURITY_HEADERS).forEach(([name, value]) => {
+      response.headers.set(name, value);
+    });
+  }
+}
 
 function redirectStatusFilter(rawValue: string | undefined): string | null {
   const statusFilter = normalizeStatusFilter(rawValue);
@@ -53,6 +84,11 @@ function submittedField(
   const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
   return typeof value === "string" ? value : "";
 }
+
+app.use("*", async (c, next) => {
+  await next();
+  applySecurityHeaders(c.res);
+});
 
 async function requireAuthentication(c: AppContext): Promise<Response | null> {
   if (!(await requestIsAuthenticated(c))) {
@@ -415,6 +451,10 @@ app.post("/plants/:plantId/water", async (c) => {
 });
 
 app.get("/debug/d1", async (c) => {
+  if (!debugRoutesEnabled(c.env)) {
+    return c.notFound();
+  }
+
   const unauthorized = await requireAuthentication(c);
   if (unauthorized) {
     return c.json({ ok: false, error: "Unauthorized" }, 401);

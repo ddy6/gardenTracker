@@ -1,6 +1,7 @@
 # Planning and working docs
 guide.md
 implementation-plan.md
+security_base.md
 
 # Local development
 .dev.vars

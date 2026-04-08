@@ -4,11 +4,14 @@
 	"main": "worker/index.ts",
 	"compatibility_date": "2026-04-07",
 	"preview_urls": true,
+	"workers_dev": false,
 	"assets": {
 		"directory": "./src/assets"
 	},
 	"vars": {
-		"WORKER_NAME": "garden-dashboard-production"
+		"WORKER_NAME": "garden-dashboard-production",
+		"AUTH_VERSION": "1",
+		"ENABLE_DEBUG_ROUTES": "false"
 	},
 	"d1_databases": [
 		{
@@ -21,8 +24,11 @@
 	],
 	"env": {
 		"preview": {
+			"workers_dev": true,
 			"vars": {
-				"WORKER_NAME": "garden-dashboard-preview"
+				"WORKER_NAME": "garden-dashboard-preview",
+				"AUTH_VERSION": "1",
+				"ENABLE_DEBUG_ROUTES": "true"
 			},
 			"d1_databases": [
 				{
