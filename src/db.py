@@ -1,7 +1,9 @@
-try:
-    from pyodide.ffi import jsnull
-except ImportError:  # pragma: no cover - local CPython test fallback
-    jsnull = None
+def _get_jsnull():
+    try:
+        from pyodide.ffi import jsnull
+    except ImportError:  # pragma: no cover - local CPython test fallback
+        return None
+    return jsnull
 
 
 def get_database(env):
@@ -12,6 +14,7 @@ def get_database(env):
 
 
 def _is_js_null(value) -> bool:
+    jsnull = _get_jsnull()
     return value is jsnull or type(value).__name__ == "JsNull"
 
 
@@ -27,6 +30,7 @@ def _to_python(value):
 
 
 def _normalize_param(value):
+    jsnull = _get_jsnull()
     if value is None and jsnull is not None:
         return jsnull
     return value

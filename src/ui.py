@@ -3,17 +3,19 @@ from urllib.parse import urlencode
 
 from fastapi import Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from auth import get_csrf_token_for_request, request_is_authenticated
 from config import APP_NAME, CSRF_COOKIE_NAME, CSRF_FORM_FIELD_NAME, CSRF_TOKEN_TTL_SECONDS, get_timezone_name, get_worker_name
 
-TEMPLATES_DIR = Path(__file__).resolve().parent / "templates"
+def _templates_dir() -> Path:
+    return Path(__file__).resolve().parent / "templates"
 
 
-def build_template_environment() -> Environment:
+def build_template_environment():
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+
     return Environment(
-        loader=FileSystemLoader(str(TEMPLATES_DIR)),
+        loader=FileSystemLoader(str(_templates_dir())),
         autoescape=select_autoescape(["html", "xml"]),
     )
 
